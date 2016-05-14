@@ -1,7 +1,5 @@
 'use strict';
 
-var id = 4;
-
 var RECIPE_TEMPLATE = {
   key: -1,
   name: "",
@@ -64,8 +62,7 @@ var RecipeBox = React.createClass({
   },
   handleSubmitAdd: function handleSubmitAdd() {
     // add newRecipe to recipes arr.
-    var recipe = Object.assign({}, this.state.data.newRecipe, { key: id });
-    id++;
+    var recipe = Object.assign({}, this.state.data.newRecipe, { key: this.state.data.recipes[this.state.data.recipes.length - 1].key + 1 });
     var updatedRecipes = this.state.data.recipes.slice(0).concat(recipe);
     var update = Object.assign({}, { data: {
         newRecipe: Object.assign({}, RECIPE_TEMPLATE),
@@ -129,6 +126,7 @@ var RecipeBox = React.createClass({
         deleteRecipe: deleteRecipe
       }));
     });
+    console.log(this.state.data);
     return React.createElement(
       'div',
       { 'class': 'row' },
@@ -176,6 +174,7 @@ var Recipe = React.createClass({
   displayName: 'Recipe',
 
   onClick: function onClick() {
+    console.log(this.props.recipe);
     var arr = document.getElementsByClassName('Ingredients-ingredients');
 
     document.getElementById(this.props.recipe.key).classList.toggle('show');
