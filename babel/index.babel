@@ -1,0 +1,367 @@
+
+
+var id = 4;
+
+var RECIPE_TEMPLATE = {
+  key: -1,
+  name: "",
+  ingredients: []
+};
+
+var data = {
+  recipes: [{
+    key: 1,
+    name: 'Pumpkin Pie',
+    ingredients: ['Pumpkin Puree', 'Sweetened Condensed Milk', 'Eggs', 'Pumpkin Pie Spice', 'Pie   Crust']
+  }, {
+    key: 2,
+    name: 'Spaghetti',
+    ingredients: ['Noodles', 'Tomato Sauce', '(Optional) Meatballs']
+  }, {
+    key: 3,
+    name: 'Onion Pie',
+    ingredients: ['Onion', 'Pie Crust', 'Sounds Yummy right?']
+  }],
+  newRecipe: Object.assign({}, RECIPE_TEMPLATE)
+};
+
+
+
+var RecipeBox = React.createClass({
+  getInitialState: function() {
+    return JSON.parse(localStorage.getItem('_impomales_recipes')) || {data: data};
+  },
+  addRecipe: function() {
+    document.getElementById('addRecipe').style.display = "block";
+  },
+  editRecipe: function(recipe) {
+    this.state.data.newRecipe = Object.assign({}, recipe);
+    this.setState(this.state.data.newRecipe, function() {
+      console.log(this.state.data);
+    });
+    document.getElementById('EditRecipe-inputName').value = recipe.name;
+    document.getElementById('EditRecipe-inputIngredients').value = recipe.ingredients.join(',');
+    document.getElementById('editRecipe').style.display = "block";
+  },
+  deleteRecipe: function(recipe) {
+    this.state.data.newRecipe = Object.assign({}, recipe);
+    this.setState(this.state.data.newRecipe, function() {
+      console.log(this.state.data);
+    });
+    document.getElementById('deleteRecipe').style.display = "block";
+  },
+  handleCloseAdd: function() {
+    document.getElementById('addRecipe').style.display = "none";
+  },
+  handleCloseEdit: function() {
+    document.getElementById('editRecipe').style.display = "none";
+  },
+  handleCloseDelete: function() {
+    document.getElementById('deleteRecipe').style.display = "none";
+  },
+  handleChange: function(changes) {
+    this.setState(changes);
+  },
+  handleSubmitAdd: function() {
+    // add newRecipe to recipes arr.
+    var recipe = Object.assign({}, this.state.data.newRecipe, {key: id});
+    id++;
+    var updatedRecipes = this.state.data.recipes.slice(0).concat(recipe);
+    var update = Object.assign({}, {data: {
+                      newRecipe: Object.assign({}, RECIPE_TEMPLATE),
+                      recipes: updatedRecipes}});
+    this.replaceState(update, function() {
+      localStorage.setItem('_impomales_recipes', JSON.stringify(this.state));
+      console.log(this.state);
+    });
+    
+    this.handleCloseAdd();
+  },
+  handleSubmitEdit: function() {
+    var recipe = Object.assign({}, this.state.data.newRecipe);
+    var recipes = this.state.data.recipes;
+    var updatedRecipes = this.state.data.recipes.slice(0);
+    var index = 0;
+    for (index = 0; index < recipes.length; index++) {
+      if (recipes[index].key === recipe.key) {
+        updatedRecipes[index].name = recipe.name;
+        updatedRecipes[index].ingredients = recipe.ingredients;
+        break;
+      }
+    }
+    
+    var update = Object.assign({}, {data: {
+                      newRecipe: Object.assign({}, RECIPE_TEMPLATE),
+                      recipes: updatedRecipes}});
+    this.replaceState(update, function() {
+      localStorage.setItem('_impomales_recipes', JSON.stringify(this.state));
+      console.log(this.state);
+    });
+    this.handleCloseEdit();
+  },
+  handleDelete: function() {
+    var recipe = Object.assign({}, this.state.data.newRecipe);
+    var recipes = this.state.data.recipes;
+    var updatedRecipes = this.state.data.recipes.slice(0);
+    var index = 0;
+    for (index = 0; index < recipes.length; index++) {
+      if (recipes[index].key === recipe.key) break;
+    }
+    updatedRecipes.splice(index, 1);
+    var update = Object.assign({}, {data: {
+                      newRecipe: Object.assign({}, RECIPE_TEMPLATE),
+                      recipes: updatedRecipes}});
+    this.replaceState(update, function() {
+      localStorage.setItem('_impomales_recipes', JSON.stringify(this.state));
+      console.log(this.state);
+    });
+    this.handleCloseDelete();
+  },
+  render: function() {
+    var recipes = [];
+    var newRecipe = this.state.data.newRecipe;
+    var editRecipe = this.editRecipe;
+    var deleteRecipe = this.deleteRecipe;
+    this.state.data.recipes.forEach(function(recipe) {
+      recipes.push(<Recipe
+                     recipe={recipe}
+                     editRecipe={editRecipe}
+                     deleteRecipe={deleteRecipe}
+                    />);
+    });
+    return (
+      <div class="row">
+        <AddRecipe 
+          handleClose={this.handleCloseAdd} 
+          handleChange={this.handleChange} 
+          handleSubmit={this.handleSubmitAdd}
+          newRecipe={newRecipe} 
+        />
+        <DeleteRecipe 
+          handleClose={this.handleCloseDelete}
+          handleDelete={this.handleDelete}
+          newRecipe={newRecipe}
+        />
+        <EditRecipe
+          handleClose={this.handleCloseEdit}
+          handleChange={this.handleChange}
+          handleSubmit={this.handleSubmitEdit}
+          newRecipe={newRecipe}
+        />
+        <div id="Title" class="col-xs-12">
+        <h1>Recipes</h1>
+        </div>
+        <div id="RecipeBox" className="col-md-12">
+          {recipes}
+          <button className="myButton" onClick={this.addRecipe}>Add Recipe</button>
+        </div>
+      </div>
+    );
+  }
+});
+
+var Recipe = React.createClass({
+  onClick: function() {
+    var arr = document.getElementsByClassName('Ingredients-ingredients');
+    
+    document.getElementById(this.props.recipe.key).classList.toggle('show');
+  },
+  render: function() {
+    
+    return (
+      <div id="Recipe-recipe">
+      <button id="Recipe-name"
+              className="accordion"
+              onClick={this.onClick}>
+        {this.props.recipe.name}
+      </button>
+      <Ingredients
+        recipe={this.props.recipe}
+        editRecipe={this.props.editRecipe}
+        deleteRecipe={this.props.deleteRecipe}
+        handleClose={this.props.handleClose}
+      />
+      </div>
+    );
+  }
+});
+
+var Ingredients = React.createClass({
+  editRecipe: function() {
+    this.props.editRecipe(this.props.recipe);
+  },
+  deleteRecipe: function() {
+    this.props.deleteRecipe(this.props.recipe);
+  },
+  render: function() {
+    var ingredients = [];
+    this.props.recipe.ingredients.forEach(function(ingredient) {
+      ingredients.push(<li>{ingredient}</li>)
+    });
+    return (
+      <div id={this.props.recipe.key} className="Ingredients-ingredients">
+        <h4 id="Ingredient-ingredient"><em>Ingredients</em></h4>
+        <ul>{ingredients}</ul>
+        <span>
+          <button className="myButton" onClick={this.deleteRecipe}>Delete</button>
+          <button className="myButton" onClick={this.editRecipe}>Edit</button>
+        </span>
+      </div>
+    );
+  }
+});
+
+var AddRecipe = React.createClass({
+  handleClose: function() {
+    this.props.handleClose();
+  },
+  handleNameChange: function(event) {
+    Object.assign(this.props.newRecipe, {name: event.target.value});
+    this.props.handleChange(this.props.newRecipe);
+  },
+  handleIngredientChange: function(event) {
+    var arr = event.target.value.split(',');
+    Object.assign(this.props.newRecipe, {ingredients: arr});
+    this.props.handleChange(this.props.newRecipe);
+  },
+  handleSubmit: function(event) {
+    event.preventDefault();
+    this.props.handleSubmit();
+  },
+  render: function() {
+    return(
+        <div id="addRecipe" className="modal">
+          <div className="modal-content">
+            <span>
+            <h4>Add a Recipe</h4>
+            <button className="close" onClick={this.handleClose}>x</button>
+            </span>
+            <form onSubmit={this.handleSubmit}>
+              <h5><b>Recipe Name</b></h5>
+              <input 
+                type="text" 
+                name="recipeName" 
+                placeholder="Recipe Name" 
+                onChange={this.handleNameChange}
+                className="AddRecipe-inputName"
+                required
+              />
+              <h5><b>Ingredients</b></h5>
+              <input 
+                type="text" 
+                name="ingredients" 
+                placeholder="Enter Ingredients,Separated,By Commas" 
+                onChange={this.handleIngredientChange}
+                className="AddRecipe-inputIngredients"
+                required
+              />
+              <span>
+                <button className="myButton" type="submit">
+                  Add Recipe
+                </button>
+              </span>
+            </form>
+          </div>
+        </div>
+    );}
+});
+
+var DeleteRecipe = React.createClass({
+  handleClose: function() {
+    this.props.handleClose();
+  },
+  handleDelete: function() {
+    this.props.handleDelete();
+  },
+  render: function() {
+    return (
+      <div id="deleteRecipe" className="modal">
+        <div className="modal-content">
+          <span>
+            <h4>Delete Recipe</h4>
+            <button 
+              className="close" 
+              onClick={this.handleClose}
+            >
+              x
+            </button>
+            </span>
+            <p>Are you sure?</p>
+            <span>
+                <button id="Yes" className="myButton" onClick={this.handleDelete}>
+                  Yes
+                </button>
+                <button id="No" className="myButton" onClick={this.handleClose}>
+                  No
+                </button>
+              </span>
+        </div>
+      </div>
+    );
+  }
+});
+
+var EditRecipe = React.createClass({
+  handleClose: function() {
+    this.props.handleClose();
+  },
+  handleSubmit: function(event) {
+    event.preventDefault();
+    this.props.handleSubmit();
+  },
+  handleNameChange: function(event) {
+    Object.assign(this.props.newRecipe, {name: event.target.value});
+    this.props.handleChange(this.props.newRecipe);
+  },
+  handleIngredientChange: function(event) {
+    var arr = event.target.value.split(',');
+    Object.assign(this.props.newRecipe, {ingredients: arr});
+    this.props.handleChange(this.props.newRecipe);
+  },
+  render: function() {
+    return(
+        <div id="editRecipe" className="modal">
+          <div className="modal-content">
+            <span>
+            <h4>Edit Recipe</h4>
+            <button 
+              className="close" 
+              onClick={this.handleClose}
+            >
+              x
+            </button>
+            </span>
+            <form onSubmit={this.handleSubmit}>
+              <h5><b>Recipe Name</b></h5>
+              <input 
+                type="text" 
+                name="recipeName" 
+                placeholder="Recipe Name" 
+                onChange={this.handleNameChange}
+                id="EditRecipe-inputName"
+                required
+              />
+              <h5><b>Ingredients</b></h5>
+              <input 
+                type="text" 
+                name="ingredients" 
+                placeholder="Enter Ingredients,Separated,By Commas" 
+                onChange={this.handleIngredientChange}
+                id="EditRecipe-inputIngredients"
+                required
+              />
+              <span>
+                <button className="myButton" type="submit">
+                  Edit Recipe
+                </button>
+              </span>
+            </form>
+          </div>
+        </div>    
+    );
+  }
+});
+
+
+
+React.render(<RecipeBox />, document.getElementById('recipeBox'));
