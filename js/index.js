@@ -17,8 +17,8 @@ var data = {
     ingredients: ['Noodles', 'Tomato Sauce', '(Optional) Meatballs']
   }, {
     key: 3,
-    name: 'Onion Pie',
-    ingredients: ['Onion', 'Pie Crust', 'Sounds Yummy right?']
+    name: 'MilkSahke',
+    ingredients: ['Milk', 'Ice Cream', 'Sugar', 'Love']
   }],
   newRecipe: Object.assign({}, RECIPE_TEMPLATE)
 };
